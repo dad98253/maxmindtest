@@ -3,7 +3,18 @@
  *
  *  Created on: Mar 24, 2022
  *      Author: dad
+
+
+The code is based on an example found at:
+https://maxmind.github.io/libmaxminddb/
+
+The original is:
+Copyright 2013-2014 MaxMind, Inc.
+
+My changes are:
+Copyright 2022 John Kuras
  */
+
 
 #include <errno.h>
 #include <maxminddb.h>
