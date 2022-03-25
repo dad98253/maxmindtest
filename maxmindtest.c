@@ -23,29 +23,177 @@ Copyright 2022 John Kuras
 #include <stdio.h>
 #include <csv.h>
 
+typedef struct CountryData
+{
+	int			geoname_id;
+	char *		locale_code;
+	char *		continent_code;
+	char *		continent_name;
+	char *		country_iso_code;
+	char *		country_name;
+} CountryDataStructure;
+/*
+ geoname_id	integer	A unique identifier for the a location as specified by GeoNames. This ID can be used as a key for the Location file.
+
+locale_code	string	The locale that the names in this row are in. This will always correspond to the locale name of the file.
+
+continent_code	string (2)
+
+The continent code for this location. Possible codes are:
+
+    AF - Africa
+    AN - Antarctica
+    AS - Asia
+    EU - Europe
+    NA - North America
+    OC - Oceania
+    SA - South America
+
+continent_name	string	The continent name for this location in the file's locale.
+
+country_iso_code	string (2)	A two-character ISO 3166-1 country code for the country associated with the location.
+
+country_name	string	The country name for this location in the file's locale.
+ */
+CountryDataStructure *tempCountryData = NULL;
+CountryDataStructure **CountryDataBase = NULL;
+#define NSIZECOUNTRY 1000
+
+typedef struct BlockData
+{
+	char *		network;
+	int			geoname_id;
+	int			registered_country_geoname_id;
+	int			represented_country_geoname_id;
+	int			is_anonymous_proxy;
+	int			is_satellite_provider;
+} BlockDataStructure;
+/*
+ Name	Type							Description
+network	IP network as a string			This is the IPv4 or IPv6 network in CIDR format such as "2.21.92.0/29" or "2001:4b0::/80".
+										We offer a utility to convert this column to start/end IPs or start/end integers.
+										See the conversion utility section for details.
+
+geoname_id	integer						A unique identifier for the network's location as specified by GeoNames. This ID can be used to look
+										up the location information in the Location file.
+
+registered_country_geoname_id	integer	The registered country is the country in which the ISP has registered the network.
+										This column contains a unique identifier for the network's registered country as
+										specified by GeoNames. This ID can be used to look up the location information in
+										the Location file.
+
+represented_country_geoname_id	integer	The represented country is the country which is represented by users of the IP address.
+										For instance, the country represented by an overseas military base. This column contains
+										a unique identifier for the network's registered country as specified by GeoNames. This
+										ID can be used to look up the location information in the Location file.
+
+is_anonymous_proxy	boolean				Deprecated. Please see our GeoIP2 Anonymous IP database to determine whether the IP address is
+										used by an anonymizing service.
+
+is_satellite_provider	boolean			Deprecated.
+ */
+BlockDataStructure *tempBlockData = NULL;
+BlockDataStructure **BlockDataBase = NULL;
+#define NSIZEBLOCKDATA 1000000
+
 static int fieldnum;
+static int numcountries = 0;
+static int numblocks = 0;
 MMDB_s mmdb;
 MMDB_entry_data_list_s *entry_data_list = NULL;
 
 int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list);
+void cleanupmem();
 
 void cb1 (void *s, size_t i, void *p) {
-  if (fieldnum) putc(',', stdout);
-  if ( s ) fprintf(stdout,"%s",(char*)s);
-  fieldnum++;
+	int id;
+	if (fieldnum) putc(',', stdout);
+	if ( s ) fprintf(stdout,"%s",(char*)s);
+	fieldnum++;
+	if(s) {
+		switch (fieldnum) {
+		case 1:
+			sscanf(s,"%i",&id);
+			tempCountryData->geoname_id = id;
+			break;
+		case 2:
+			tempCountryData->locale_code = (char*)malloc(strlen(s)+1);
+			strcpy(tempCountryData->locale_code,s);
+			break;
+		case 3:
+			tempCountryData->continent_code = (char*)malloc(strlen(s)+1);
+			strcpy(tempCountryData->continent_code,s);
+			break;
+		case 4:
+			tempCountryData->continent_name = (char*)malloc(strlen(s)+1);
+			strcpy(tempCountryData->continent_name,s);
+			break;
+		case 5:
+			tempCountryData->country_iso_code = (char*)malloc(strlen(s)+1);
+			strcpy(tempCountryData->country_iso_code,s);
+			break;
+		case 6:
+			tempCountryData->country_name = (char*)malloc(strlen(s)+1);
+			strcpy(tempCountryData->country_name,s);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 void cb2 (int c, void *p) {
+	putc('\n', stdout);
+	*(CountryDataBase+numcountries) = tempCountryData;
+	tempCountryData = (CountryDataStructure*) calloc(1, sizeof(CountryDataStructure));
+	numcountries++;
 	fieldnum = 0;
-  putc('\n', stdout);
 }
 
 void cb3 (void *s, size_t i, void *p) {
+  int id;
   if (fieldnum) putc(',', stdout);
   if ( s ) fprintf(stdout,"%s",(char*)s);
   fieldnum++;
+	if(s) {
+		switch (fieldnum) {
+		case 1:
+			tempBlockData->network = (char*)malloc(strlen(s)+1);
+			strcpy(tempBlockData->network,s);
+			break;
+		case 2:
+			sscanf(s,"%i",&id);
+			tempBlockData->geoname_id = id;
+			break;
+		case 3:
+			sscanf(s,"%i",&id);
+			tempBlockData->registered_country_geoname_id = id;
+			break;
+		case 4:
+			sscanf(s,"%i",&id);
+			tempBlockData->represented_country_geoname_id = id;
+			break;
+		case 5:
+			sscanf(s,"%i",&id);
+			tempBlockData->is_anonymous_proxy = id;
+			break;
+		case 6:
+			sscanf(s,"%i",&id);
+			tempBlockData->is_satellite_provider = id;
+			break;
+		default:
+			break;
+		}
+	}
 }
 
+void cb4 (int c, void *p) {
+	putc('\n', stdout);
+	*(BlockDataBase+numblocks) = tempBlockData;
+	tempBlockData = (BlockDataStructure*) calloc(1, sizeof(BlockDataStructure));
+	numblocks++;
+	fieldnum = 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -81,6 +229,10 @@ int main(int argc, char **argv)
         exit(1);
     }
 // get country list
+    CountryDataBase = (CountryDataStructure**) calloc(NSIZECOUNTRY, sizeof(CountryDataStructure*));
+    tempCountryData = (CountryDataStructure*) calloc(1, sizeof(CountryDataStructure));
+    BlockDataBase = (BlockDataStructure**) calloc(NSIZEBLOCKDATA, sizeof(BlockDataStructure*));
+    tempBlockData = (BlockDataStructure*) calloc(1, sizeof(BlockDataStructure));
     csv_init(&p, CSV_STRICT_FINI | CSV_APPEND_NULL | CSV_EMPTY_IS_NULL);
     if ( (countriesfp = fopen(countries_file, "r")) == NULL ) {
     	 fprintf(stderr, " IO error: %s while trying to open %s\n", strerror(errno), countries_file);
@@ -99,7 +251,44 @@ int main(int argc, char **argv)
 // read blocks
     csv_fini(&p, cb3, cb2, NULL);
     csv_free(&p);
-
+// check what was saved
+#ifdef DEBUG
+    fprintf(stdout,"---------------------------------\n");
+    if (numcountries) {
+    	for (int i=1;i<numcountries;i++) {
+    		tempCountryData = *(CountryDataBase+i);
+    		if (tempCountryData->geoname_id < 1 ) {
+    			fprintf(stdout,"bad data at country index = %i\n",i);
+    		} else {
+    			fprintf(stdout,"%i,",tempCountryData->geoname_id);
+    		}
+    		if ( tempCountryData->locale_code ) {
+    			fprintf(stdout,"%s,",tempCountryData->locale_code);
+    		} else {
+    			fprintf(stdout,",");
+    		}
+    		if ( tempCountryData->continent_code ) {
+    			fprintf(stdout,"%s,",tempCountryData->continent_code);
+    		} else {
+    			fprintf(stdout,",");
+    		}
+    		if ( tempCountryData->continent_name ) {
+    			fprintf(stdout,"%s,",tempCountryData->continent_name);
+    		} else {
+    			fprintf(stdout,",");
+    		}
+    		if ( tempCountryData->country_iso_code ) {
+    			fprintf(stdout,"%s,",tempCountryData->country_iso_code);
+    		} else {
+    			fprintf(stdout,",");
+    		}
+    		if ( tempCountryData->country_name ) {
+    			fprintf(stdout,"%s",tempCountryData->country_name);
+    		}
+    		fprintf(stdout,"\n");
+    	}
+    }
+#endif	// DEBUG
     csv_init(&p, CSV_STRICT_FINI | CSV_APPEND_NULL | CSV_EMPTY_IS_NULL);
     if ( (blocksfp = fopen(blocks_file, "r")) == NULL ) {
     	 fprintf(stderr, " IO error: %s while trying to open %s\n", strerror(errno), blocks_file);
@@ -109,14 +298,14 @@ int main(int argc, char **argv)
 
     while ((i=getc(blocksfp)) != EOF) {
       c = i;
-      if (csv_parse(&p, &c, 1, cb3, cb2, NULL) != 1) {
+      if (csv_parse(&p, &c, 1, cb3, cb4, NULL) != 1) {
         fprintf(stderr, " Error: %s\n", csv_strerror(csv_error(&p)));
         exit_code = EXIT_FAILURE;
         goto end;
       }
     }
 
-    csv_fini(&p, cb3, cb2, NULL);
+    csv_fini(&p, cb3, cb4, NULL);
     csv_free(&p);
 
     fprintf(stderr, " done\n");
@@ -126,10 +315,9 @@ int main(int argc, char **argv)
         MMDB_close(&mmdb);
         if ( countriesfp ) fclose(countriesfp);
         if ( blocksfp ) fclose(blocksfp);
+        cleanupmem();
         exit(exit_code);
 }
-
-
 
 int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list) {
 	int exit_code = 0;
@@ -181,4 +369,35 @@ end:
 	return(exit_code);
 }
 
+void cleanupmem() {
+	int i;
+	if (numcountries) {
+		for (i=0;i<numcountries;i++) {
+			tempCountryData = *(CountryDataBase+i);
+			if (tempCountryData) {
+				if (tempCountryData->locale_code) free (tempCountryData->locale_code);
+				if (tempCountryData->continent_code) free (tempCountryData->continent_code);
+				if (tempCountryData->continent_name) free (tempCountryData->continent_name);
+				if (tempCountryData->country_iso_code) free (tempCountryData->country_iso_code);
+				if (tempCountryData->country_name) free (tempCountryData->country_name);
+				free(tempCountryData);
+			}
+		}
+		free(CountryDataBase);
+		CountryDataBase = NULL;
+		tempCountryData = NULL;
+	}
+	if (numblocks) {
+		for (i=0;i<numblocks;i++) {
+			tempBlockData = *(BlockDataBase+i);
+			if (tempBlockData) {
+				if (tempBlockData->network) free (tempBlockData->network);
+				free(tempBlockData);
+			}
+		}
+		free(BlockDataBase);
+		BlockDataBase = NULL;
+		tempBlockData = NULL;
+	}
+}
 
