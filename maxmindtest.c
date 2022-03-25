@@ -103,6 +103,7 @@ MMDB_s mmdb;
 MMDB_entry_data_list_s *entry_data_list = NULL;
 
 int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list);
+void quickSort(CountryDataStructure *array[], int low, int high);
 void cleanupmem();
 
 void cb1 (void *s, size_t i, void *p) {
@@ -195,6 +196,14 @@ void cb4 (int c, void *p) {
 	fieldnum = 0;
 }
 
+// qsort callback compare function
+//int (*compar)(const void *, const void*)
+int qscompare(const void*array, const void *pivot){
+	return ( ((CountryDataStructure*)array)->geoname_id - ((CountryDataStructure*)pivot)->geoname_id );
+//	if(((CountryDataStructure*)array)->geoname_id >= ((CountryDataStructure*)pivot)->geoname_id) return (1);
+//	return(0);
+}
+
 int main(int argc, char **argv)
 {
     char *defaultfilename = "/var/lib/GeoIP/GeoLite2-Country.mmdb";
@@ -255,6 +264,8 @@ int main(int argc, char **argv)
 #ifdef DEBUG
     fprintf(stdout,"---------------------------------\n");
     if (numcountries) {
+    	// void qsort(void *base, size_t nitems, size_t size, int (*compar)(const void *, const void*));
+    	qsort((void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),qscompare);
     	for (int i=1;i<numcountries;i++) {
     		tempCountryData = *(CountryDataBase+i);
     		if (tempCountryData->geoname_id < 1 ) {
