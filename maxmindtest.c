@@ -224,23 +224,28 @@ int main(int argc, char **argv)
     char *defaultfilename = "/var/lib/GeoIP/GeoLite2-Country.mmdb";
     char *defaultcountries_file = "GeoLite2-Country-Locations-en.csv";
     char *defaultblocks_file = "GeoLite2-Country-Blocks-IPv4.csv";
+    char *defaultfilter = "CN";
     char *filename = defaultfilename;
     char *countries_file = defaultcountries_file;
     char *blocks_file = defaultblocks_file;
+    char *filter = defaultfilter;
     CountryDataStructure ** tempCountryDatap = NULL;
     struct csv_parser p;
     int i;
     char c;
     int exit_code;
+    int filterid = 0;
     FILE *blocksfp = NULL;
     FILE *countriesfp = NULL;
 
     if ( argc > 1 ) filename = argv[1];
     if ( argc > 2 ) countries_file = argv[2];
     if ( argc > 3 ) blocks_file = argv[3];
+    if ( argc > 4 ) filter = argv[4];
     if ( !strcmp(filename,"*") ) filename = defaultfilename;
     if ( !strcmp(countries_file,"*") ) countries_file = defaultcountries_file;
     if ( !strcmp(blocks_file,"*") ) blocks_file = defaultblocks_file;
+    if ( !strcmp(filter,"*") ) filter = defaultfilter;
 
     int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
@@ -283,7 +288,7 @@ int main(int argc, char **argv)
     	qsort((void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),qscompare);
     	for (int i=1;i<numcountries;i++) {
     		tempCountryData = *(CountryDataBase+i);
-    		if (tempCountryData->geoname_id < 1 ) {
+     		if (tempCountryData->geoname_id < 1 ) {
     			fprintf(stdout,"bad data at country index = %i\n",i);
     		} else {
     			fprintf(stdout,"%i,",tempCountryData->geoname_id);
@@ -326,6 +331,24 @@ int main(int argc, char **argv)
     }
     fprintf(stdout,"---------------------------------\n");
 #endif	// DEBUG
+    // find filtered geoname_id
+    if (numcountries &&  argc > 4) {
+    	qsort((void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),qscompare);
+    	for (int i=1;i<numcountries;i++) {
+    		tempCountryData = *(CountryDataBase+i);
+     		if (tempCountryData->geoname_id < 1 ) {
+    			fprintf(stdout,"bad data at country index = %i\n",i);
+    		} else {
+				if ( tempCountryData->country_iso_code ) {
+					if(!strcmp(tempCountryData->country_iso_code,filter)) {
+						filterid = tempCountryData->geoname_id;
+						fprintf(stderr," filtering on %s\n",filter);
+					}
+				}
+    		}
+     	}
+    }
+
     csv_init(&p, CSV_STRICT_FINI | CSV_APPEND_NULL | CSV_EMPTY_IS_NULL);
     if ( (blocksfp = fopen(blocks_file, "r")) == NULL ) {
     	 fprintf(stderr, " IO error: %s while trying to open %s\n", strerror(errno), blocks_file);
@@ -347,8 +370,6 @@ int main(int argc, char **argv)
 
 #ifdef DEBUG
     fprintf(stdout,"---------------------------------\n");
-    // void *bsearch(const void *key, const void *base, size_t nitems, size_t size, int (*compar)(const void *, const void *))
-    // find 4032283
 
     if (numblocks) {
     	for (int i=1;i<numblocks;i++) {
@@ -425,7 +446,87 @@ int main(int argc, char **argv)
     		fprintf(stdout,"\n");
     	}
     }
+    fprintf(stdout,"---------------------------------\n");
 #endif	// DEBUG
+
+    if (numblocks && filterid) {
+    	for (int i=1;i<numblocks;i++) {
+    		tempBlockData = *(BlockDataBase+i);
+    		if ( (tempBlockData->geoname_id == filterid) || (tempBlockData->registered_country_geoname_id == filterid) || (tempBlockData->represented_country_geoname_id == filterid) ) {
+				if ( tempBlockData->network ) {
+					fprintf(stdout,"%s,",tempBlockData->network);
+				} else {
+					fprintf(stdout,",");
+				}
+				// geoname_id
+				if (tempBlockData->geoname_id < 1 ) {
+					//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
+				} else {
+					tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+					if( tempCountryData != NULL ) {
+						fprintf(stdout,"%i",tempBlockData->geoname_id);
+						if ((*tempCountryDatap)->country_iso_code) {
+							fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+						} else {
+							fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+						}
+					} else {
+					   printf("geoname_id = %i could not be found\n", tempBlockData->geoname_id);
+					}
+				}
+				fprintf(stdout,",");
+				// registered_country_geoname_id
+				if (tempBlockData->registered_country_geoname_id < 1 ) {
+					//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
+				} else {
+					tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->registered_country_geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+					if( tempCountryData != NULL ) {
+						fprintf(stdout,"%i",tempBlockData->registered_country_geoname_id);
+						if ((*tempCountryDatap)->country_iso_code) {
+							fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+						} else {
+							fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+						}
+					} else {
+					   printf("registered_country_geoname_id = %i could not be found\n", tempBlockData->registered_country_geoname_id);
+					}
+				}
+				fprintf(stdout,",");
+				// represented_country_geoname_id
+				if (tempBlockData->represented_country_geoname_id < 1 ) {
+					//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
+				} else {
+					tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->represented_country_geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+					if( tempCountryData != NULL ) {
+						fprintf(stdout,"%i",tempBlockData->represented_country_geoname_id);
+						if ((*tempCountryDatap)->country_iso_code) {
+							fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+						} else {
+							fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+						}
+					} else {
+					   printf("represented_country_geoname_id = %i could not be found\n", tempBlockData->represented_country_geoname_id);
+					}
+				}
+				fprintf(stdout,",");
+				//	is_anonymous_proxy;
+				if ( tempBlockData->is_anonymous_proxy ) {
+					fprintf(stdout,"1,");
+				} else {
+					fprintf(stdout,"0,");
+				}
+				//	is_satellite_provider;
+				if ( tempBlockData->is_satellite_provider ) {
+					fprintf(stdout,"1");
+				} else {
+					fprintf(stdout,"0");
+				}
+
+				fprintf(stdout,"\n");
+    		}
+    	}
+    }
+
     fprintf(stderr, " done\n");
 
     end:
