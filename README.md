@@ -23,8 +23,7 @@ The arguments and default values are:
    default: "GeoLite2-Country-Blocks-IPv4.csv"
 4) The iso country code for the country to filter on<br>
    default: "CN" (China)
-5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output<br>
-   3 -> ufw output<br>
+5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output, 3 -> ufw output<br>
    default: csv format
 
 The program needs to be linked against both the maxmind database library and libcsv:<br>
