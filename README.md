@@ -1,2 +1,37 @@
 # maxmindtest
 A program to load maxmind csv files and verify them against the MaxMind GeoIP binary database.
+
+The program also has the ability to filter the files based on country code and produce iptables
+output appropriate for GeoIP filtering at a linux firewall.
+
+The filter is conservative, in that it will block all IP addresses associated with the specified
+country: The Maxmind database has three country fields associated with each IP address: "country",
+"registered country", and "represented country". If any of these three are a match, the entry is
+assumed to be a "match". Satellite and proxy flags are ignored.
+
+The program takes up to five arguments. The first three are file paths, the fourth is the country
+code to filter on, and the last is an output format option. Each has a default. The default can also
+be invoked by specifying an "*" as the argument that you wish to use the default for.
+
+The arguments and default values are:
+
+1) The Maxmind GeoIp (binary) database file
+   default: "/var/lib/GeoIP/GeoLite2-Country.mmdb"
+2) The Maxmind country location csv file
+   default: "GeoLite2-Country-Locations-en.csv"
+3) The Maxmind country block csv file
+   default: "GeoLite2-Country-Blocks-IPv4.csv"
+4) The iso country code for the country to filter on
+   default: "CN" (China)
+5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output
+   default: csv format
+
+The program needs to be linked against both the maxmind database library and libcsv:
+sudo apt-get install libcsv-dev libmaxminddb-dev
+git clone ...
+cd maxmindtest
+gcc -o maxmindtest maxmindtest.c -lsv -lmaxminddb
+./maxmindtest "*" "*" "*" "*" 2  > iptables.txt
+
+Have fun!
+-John
