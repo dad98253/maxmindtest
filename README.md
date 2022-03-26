@@ -15,23 +15,23 @@ be invoked by specifying an "*" as the argument that you wish to use the default
 
 The arguments and default values are:
 
-1) The Maxmind GeoIp (binary) database file
+1) The Maxmind GeoIp (binary) database file<br>
    default: "/var/lib/GeoIP/GeoLite2-Country.mmdb"
-2) The Maxmind country location csv file
+2) The Maxmind country location csv file<br>
    default: "GeoLite2-Country-Locations-en.csv"
-3) The Maxmind country block csv file
+3) The Maxmind country block csv file<br>
    default: "GeoLite2-Country-Blocks-IPv4.csv"
-4) The iso country code for the country to filter on
+4) The iso country code for the country to filter on<br>
    default: "CN" (China)
-5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output
+5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output<br>
    default: csv format
 
 The program needs to be linked against both the maxmind database library and libcsv:<br>
 sudo apt-get install libcsv-dev libmaxminddb-dev<br>
-git clone ...
-cd maxmindtest
-gcc -o maxmindtest maxmindtest.c -lsv -lmaxminddb
-./maxmindtest "*" "*" "*" "*" 2  > iptables.txt
+git clone ...<br>
+cd maxmindtest<br>
+gcc -o maxmindtest maxmindtest.c -lsv -lmaxminddb<br>
+./maxmindtest "*" "*" "*" "*" 2  > iptables.txt<br>
 
-Have fun!
+Have fun!<br>
 -John
