@@ -102,7 +102,7 @@ static int numblocks = 0;
 MMDB_s mmdb;
 MMDB_entry_data_list_s *entry_data_list = NULL;
 
-int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list);
+int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list, int whichentry, char* whichiso);
 void quickSort(CountryDataStructure *array[], int low, int high);
 void cleanupmem();
 
@@ -225,16 +225,24 @@ int main(int argc, char **argv)
     char *defaultcountries_file = "GeoLite2-Country-Locations-en.csv";
     char *defaultblocks_file = "GeoLite2-Country-Blocks-IPv4.csv";
     char *defaultfilter = "CN";
+    char *defaultformat = "1";
     char *filename = defaultfilename;
     char *countries_file = defaultcountries_file;
     char *blocks_file = defaultblocks_file;
     char *filter = defaultfilter;
+    char *format = defaultformat;
+    int iformat = 0;
+    long long unsigned int numadds = 0;
     CountryDataStructure ** tempCountryDatap = NULL;
     struct csv_parser p;
     int i;
     char c;
-    int exit_code;
+    char tempstr[10000];
+    char * pch = NULL;
+    int exit_code = 0;
     int filterid = 0;
+    int tempint = 0;
+    int iret = 0;
     FILE *blocksfp = NULL;
     FILE *countriesfp = NULL;
 
@@ -242,11 +250,20 @@ int main(int argc, char **argv)
     if ( argc > 2 ) countries_file = argv[2];
     if ( argc > 3 ) blocks_file = argv[3];
     if ( argc > 4 ) filter = argv[4];
+    if ( argc > 5 ) format = argv[5];
     if ( !strcmp(filename,"*") ) filename = defaultfilename;
     if ( !strcmp(countries_file,"*") ) countries_file = defaultcountries_file;
     if ( !strcmp(blocks_file,"*") ) blocks_file = defaultblocks_file;
     if ( !strcmp(filter,"*") ) filter = defaultfilter;
+    if ( !strcmp(format,"*") ) format = defaultformat;
+    sscanf(format,"%i",&iformat);
 
+#ifdef DEBUG
+    for (i=0;i<argc;i++) {
+    	fprintf(stderr, " %s", argv[i]);
+    }
+    fprintf(stderr,"\n opening maxmind db file \"%s\"\n filter format is %i\n",filename,iformat);
+#endif
     int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
     if (MMDB_SUCCESS != status) {
@@ -383,7 +400,8 @@ int main(int argc, char **argv)
     		if (tempBlockData->geoname_id < 1 ) {
     			//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
     		} else {
-    		    tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+    		    tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->geoname_id),
+    		    		(void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
     		    if( tempCountryData != NULL ) {
     		    	fprintf(stdout,"%i",tempBlockData->geoname_id);
     		    	if ((*tempCountryDatap)->country_iso_code) {
@@ -400,7 +418,8 @@ int main(int argc, char **argv)
     		if (tempBlockData->registered_country_geoname_id < 1 ) {
     			//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
     		} else {
-    		    tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->registered_country_geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+    		    tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->registered_country_geoname_id),
+    		    		(void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
     		    if( tempCountryData != NULL ) {
     		    	fprintf(stdout,"%i",tempBlockData->registered_country_geoname_id);
     		    	if ((*tempCountryDatap)->country_iso_code) {
@@ -417,7 +436,8 @@ int main(int argc, char **argv)
     		if (tempBlockData->represented_country_geoname_id < 1 ) {
     			//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
     		} else {
-    		    tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->represented_country_geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+    		    tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->represented_country_geoname_id),
+    		    		(void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
     		    if( tempCountryData != NULL ) {
     		    	fprintf(stdout,"%i",tempBlockData->represented_country_geoname_id);
     		    	if ((*tempCountryDatap)->country_iso_code) {
@@ -450,81 +470,135 @@ int main(int argc, char **argv)
 #endif	// DEBUG
 
     if (numblocks && filterid) {
+    	numadds = 0;
     	for (int i=1;i<numblocks;i++) {
     		tempBlockData = *(BlockDataBase+i);
-    		if ( (tempBlockData->geoname_id == filterid) || (tempBlockData->registered_country_geoname_id == filterid) || (tempBlockData->represented_country_geoname_id == filterid) ) {
-				if ( tempBlockData->network ) {
-					fprintf(stdout,"%s,",tempBlockData->network);
-				} else {
+    		if ( (tempBlockData->geoname_id == filterid) ||
+    				(tempBlockData->registered_country_geoname_id == filterid) ||
+					(tempBlockData->represented_country_geoname_id == filterid) ) {
+    			// count the total number of IPv4 addresses this country has assigned to it (just for kicks)...
+    			if ( tempBlockData->network ) {
+    				// get size of net - find subnet mask
+    				pch = strchr(tempBlockData->network,'/');
+    				if (pch) {
+    					pch++;
+    					sscanf(pch,"%i",&tempint);
+    					if((tempint < 0) || (tempint > 32) ) {
+    						fprintf(stderr,"bad net mask at %s\n",tempBlockData->network);
+    					} else {
+    						numadds+= 1<<(32-tempint);
+    					}
+    				}
+    				strcpy(tempstr,tempBlockData->network);
+    				pch = strchr(tempstr,'/');
+    				*pch = '\000';
+    				pch++;
+    				iret = 0;
+    				if ( tempBlockData->geoname_id == filterid ) iret = checkentry(tempstr, mmdb, entry_data_list, 1, filter);
+    				if ( iret ) {
+    					fprintf(stderr,"checkentry for geoname_id failed on %s , iret = %i\n", tempstr, iret);
+    					exit_code = iret;
+    					goto end;
+    				}
+    				iret = 0;
+    				if ( tempBlockData->registered_country_geoname_id == filterid ) iret = checkentry(tempstr, mmdb, entry_data_list, 2, filter);
+    				if ( iret ) {
+    					fprintf(stderr,"checkentry for registered_country_geoname_id failed on %s , iret = %i\n", tempstr, iret);
+    					exit_code = iret;
+    					goto end;
+    				}
+    				iret = 0;
+    				if ( tempBlockData->represented_country_geoname_id == filterid ) iret = checkentry(tempstr, mmdb, entry_data_list, 3, filter);
+    				if ( iret ) {
+    					fprintf(stderr,"checkentry for represented_country_geoname_id failed on %s , iret = %i\n", tempstr, iret);
+    					exit_code = iret;
+    					goto end;
+    				}
+    			}
+    			if ( iformat == 2 ) {
+    				// iptables -A INPUT -s 1.0.1.0/24 -j DROP
+					if ( tempBlockData->network ) {
+						fprintf(stdout,"iptables -A INPUT -s %s -j DROP\n",tempBlockData->network);
+					}
+    			} else if ( iformat == 1 ) {
+    				// csv format similar to csv input but with iso country codes added
+					if ( tempBlockData->network ) {
+						fprintf(stdout,"%s,",tempBlockData->network);
+					} else {
+						fprintf(stdout,",");
+					}
+					// geoname_id
+					if (tempBlockData->geoname_id < 1 ) {
+						//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
+					} else {
+						tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->geoname_id),
+								(void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+						if( tempCountryData != NULL ) {
+							fprintf(stdout,"%i",tempBlockData->geoname_id);
+							if ((*tempCountryDatap)->country_iso_code) {
+								fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+							} else {
+								fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+							}
+						} else {
+						   printf("geoname_id = %i could not be found\n", tempBlockData->geoname_id);
+						}
+					}
 					fprintf(stdout,",");
-				}
-				// geoname_id
-				if (tempBlockData->geoname_id < 1 ) {
-					//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
-				} else {
-					tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
-					if( tempCountryData != NULL ) {
-						fprintf(stdout,"%i",tempBlockData->geoname_id);
-						if ((*tempCountryDatap)->country_iso_code) {
-							fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
-						} else {
-							fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
-						}
+					// registered_country_geoname_id
+					if (tempBlockData->registered_country_geoname_id < 1 ) {
+						//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
 					} else {
-					   printf("geoname_id = %i could not be found\n", tempBlockData->geoname_id);
-					}
-				}
-				fprintf(stdout,",");
-				// registered_country_geoname_id
-				if (tempBlockData->registered_country_geoname_id < 1 ) {
-					//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
-				} else {
-					tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->registered_country_geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
-					if( tempCountryData != NULL ) {
-						fprintf(stdout,"%i",tempBlockData->registered_country_geoname_id);
-						if ((*tempCountryDatap)->country_iso_code) {
-							fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+						tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->registered_country_geoname_id),
+								(void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+						if( tempCountryData != NULL ) {
+							fprintf(stdout,"%i",tempBlockData->registered_country_geoname_id);
+							if ((*tempCountryDatap)->country_iso_code) {
+								fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+							} else {
+								fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+							}
 						} else {
-							fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+						   printf("registered_country_geoname_id = %i could not be found\n", tempBlockData->registered_country_geoname_id);
 						}
-					} else {
-					   printf("registered_country_geoname_id = %i could not be found\n", tempBlockData->registered_country_geoname_id);
 					}
-				}
-				fprintf(stdout,",");
-				// represented_country_geoname_id
-				if (tempBlockData->represented_country_geoname_id < 1 ) {
-					//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
-				} else {
-					tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->represented_country_geoname_id), (void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
-					if( tempCountryData != NULL ) {
-						fprintf(stdout,"%i",tempBlockData->represented_country_geoname_id);
-						if ((*tempCountryDatap)->country_iso_code) {
-							fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+					fprintf(stdout,",");
+					// represented_country_geoname_id
+					if (tempBlockData->represented_country_geoname_id < 1 ) {
+						//fprintf(stdout,"bad data at block index = %i, geoname_id = %i\n",i,tempBlockData->geoname_id);
+					} else {
+						tempCountryDatap = (CountryDataStructure**)bsearch((const void *)&(tempBlockData->represented_country_geoname_id),
+								(void*)CountryDataBase, numcountries, sizeof(CountryDataStructure *),bscompare);
+						if( tempCountryData != NULL ) {
+							fprintf(stdout,"%i",tempBlockData->represented_country_geoname_id);
+							if ((*tempCountryDatap)->country_iso_code) {
+								fprintf(stdout,"[%s]",(*tempCountryDatap)->country_iso_code);
+							} else {
+								fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+							}
 						} else {
-							fprintf(stdout,"[%s]",(*tempCountryDatap)->continent_name);
+						   printf("represented_country_geoname_id = %i could not be found\n", tempBlockData->represented_country_geoname_id);
 						}
-					} else {
-					   printf("represented_country_geoname_id = %i could not be found\n", tempBlockData->represented_country_geoname_id);
 					}
-				}
-				fprintf(stdout,",");
-				//	is_anonymous_proxy;
-				if ( tempBlockData->is_anonymous_proxy ) {
-					fprintf(stdout,"1,");
-				} else {
-					fprintf(stdout,"0,");
-				}
-				//	is_satellite_provider;
-				if ( tempBlockData->is_satellite_provider ) {
-					fprintf(stdout,"1");
-				} else {
-					fprintf(stdout,"0");
-				}
+					fprintf(stdout,",");
+					//	is_anonymous_proxy;
+					if ( tempBlockData->is_anonymous_proxy ) {
+						fprintf(stdout,"1,");
+					} else {
+						fprintf(stdout,"0,");
+					}
+					//	is_satellite_provider;
+					if ( tempBlockData->is_satellite_provider ) {
+						fprintf(stdout,"1");
+					} else {
+						fprintf(stdout,"0");
+					}
 
-				fprintf(stdout,"\n");
+					fprintf(stdout,"\n");
+    			}
     		}
     	}
+    	fprintf(stderr," %llu IPv4 addresses assigned to this country\n",numadds);
     }
 
     fprintf(stderr, " done\n");
@@ -538,22 +612,42 @@ int main(int argc, char **argv)
         exit(exit_code);
 }
 
-int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list) {
+static size_t mmdb_strnlen(const char *s, size_t maxlen) {
+    size_t len;
+
+    for (len = 0; len < maxlen; len++, s++) {
+        if (!*s)
+            break;
+    }
+    return (len);
+}
+
+static char *mmdb_strndup(const char *str, size_t n) {
+    size_t len;
+    char *copy;
+
+    len = mmdb_strnlen(str, n);
+    if ((copy = malloc(len + 1)) == NULL)
+        return (NULL);
+    memcpy(copy, str, len);
+    copy[len] = '\0';
+    return (copy);
+}
+
+int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_data_list, int whichentry, char* whichiso) {
 	int exit_code = 0;
 	int gai_error, mmdb_error;
 	MMDB_lookup_result_s result =
 	    MMDB_lookup_string(&mmdb, ip_address, &gai_error, &mmdb_error);
 
 	if (0 != gai_error) {
-	    fprintf(stderr,
-	            "\n  Error from getaddrinfo for %s - %s\n\n",
+	    fprintf(stderr, "\n  Error from getaddrinfo for %s - %s\n\n",
 	            ip_address, gai_strerror(gai_error));
 	    exit(2);
 	}
 
 	if (MMDB_SUCCESS != mmdb_error) {
-		fprintf(stderr,
-				"\n  Got an error from libmaxminddb: %s\n\n",
+		fprintf(stderr, "\n  Got an error from libmaxminddb: %s\n\n",
 				MMDB_strerror(mmdb_error));
 		exit_code = 3;
 		goto end;
@@ -561,30 +655,82 @@ int checkentry(char * ip_address, MMDB_s mmdb, MMDB_entry_data_list_s *entry_dat
 
 
 	if (result.found_entry) {
-		int status = MMDB_get_entry_data_list(&result.entry,
-											  &entry_data_list);
-
+		int status = MMDB_get_entry_data_list(&result.entry, &entry_data_list);
 		if (MMDB_SUCCESS != status) {
-			fprintf(
-				stderr,
-				" Got an error looking up the entry data - %s\n",
+			fprintf( stderr, " Got an error looking up the entry data - %s\n",
 				MMDB_strerror(status));
 			exit_code = 4;
 			goto end;
 		}
 
+
+		MMDB_entry_data_s entry_data;
+		switch (whichentry) {
+		case 1:
+			status = MMDB_get_value(&result.entry, &entry_data, "country", "iso_code", NULL);
+			break;
+		case 2:
+			status = MMDB_get_value(&result.entry, &entry_data, "registered_country", "iso_code", NULL);
+			break;
+		case 3:
+			status = MMDB_get_value(&result.entry, &entry_data, "represented_country", "iso_code", NULL);
+			break;
+		default:
+			status = 999;
+			break;
+		}
+		if (MMDB_SUCCESS != status) {
+			fprintf( stderr, " Got an error getting iso code value data - %s\n",
+				MMDB_strerror(status));
+			exit_code = 6;
+			goto end;
+		}
+		if (entry_data.has_data) {
+			if (MMDB_DATA_TYPE_UTF8_STRING != entry_data.type) {
+				fprintf( stderr, " iso code value type is not a string - %s\n",
+					MMDB_strerror(status));
+				exit_code = 8;
+				goto end;
+			}
+			char *key = mmdb_strndup(entry_data.utf8_string, entry_data.data_size);
+			if (NULL == key) {
+				fprintf( stderr, " Can\'t create new string - out of memory : %s\n",
+					MMDB_strerror(status));
+				exit_code = 9;
+				goto end;
+			}
+#ifdef DEBUG
+			fprintf(stdout, "\"%s\": \n", key);
+#endif	// DEBUG
+			if ( strcmp(key,whichiso) ) {
+				fprintf( stderr, " Database mismatch : looking for %s, found %s\n",whichiso,key);
+				exit_code = 10;
+				free(key);
+				goto end;
+			}
+			free(key);
+		} else {
+			fprintf( stderr, " No iso code for this entry - %s\n", MMDB_strerror(status));
+			exit_code = 7;
+			goto end;
+		}
+
+#ifdef DUMP
 		if (NULL != entry_data_list) {
 			MMDB_dump_entry_data_list(stdout, entry_data_list, 2);
 		}
+#endif	// DUMP
 	} else {
-		fprintf(
-			stderr,
-			"\n  No entry for this IP address (%s) was found\n\n",
-			ip_address);
+		fprintf( stderr, "\n  No entry for this IP address (%s) was found\n\n", ip_address);
 		exit_code = 5;
 	}
 
 end:
+#ifndef DUMP
+		if ( exit_code && (NULL != entry_data_list) ) {
+			MMDB_dump_entry_data_list(stderr, entry_data_list, 2);
+		}
+#endif	// DUMP
 	return(exit_code);
 }
 
