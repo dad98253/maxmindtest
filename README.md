@@ -2,7 +2,7 @@
 A program to load maxmind csv files and verify them against the MaxMind GeoIP binary database.
 
 The program also has the ability to filter the files based on country code and produce iptables
-output appropriate for GeoIP filtering at a linux firewall.
+or ufw output appropriate for GeoIP filtering at a linux firewall.
 
 The filter is conservative, in that it will block all IP addresses associated with the specified
 country: The Maxmind database has three country fields associated with each IP address: "country",
@@ -24,6 +24,7 @@ The arguments and default values are:
 4) The iso country code for the country to filter on<br>
    default: "CN" (China)
 5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output<br>
+   3 -> ufw output<br>
    default: csv format
 
 The program needs to be linked against both the maxmind database library and libcsv:<br>
