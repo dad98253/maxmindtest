@@ -359,7 +359,7 @@ int main(int argc, char **argv)
 				if ( tempCountryData->country_iso_code ) {
 					if(!strcmp(tempCountryData->country_iso_code,filter)) {
 						filterid = tempCountryData->geoname_id;
-						fprintf(stderr," filtering on %s\n",filter);
+						fprintf(stderr," filtering on %s\n",tempCountryData->country_name);
 					}
 				}
     		}
