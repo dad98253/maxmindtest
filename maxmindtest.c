@@ -226,11 +226,13 @@ int main(int argc, char **argv)
     char *defaultblocks_file = "GeoLite2-Country-Blocks-IPv4.csv";
     char *defaultfilter = "CN";
     char *defaultformat = "1";
+    char *defaultinterface = "eth0";
     char *filename = defaultfilename;
     char *countries_file = defaultcountries_file;
     char *blocks_file = defaultblocks_file;
     char *filter = defaultfilter;
     char *format = defaultformat;
+    char *interface = defaultinterface;
     int iformat = 0;
     long long unsigned int numadds = 0;
     CountryDataStructure ** tempCountryDatap = NULL;
@@ -241,6 +243,7 @@ int main(int argc, char **argv)
     char * pch = NULL;
     int exit_code = 0;
     int filterid = 0;
+    char * fileredCountryName = NULL;
     int tempint = 0;
     int iret = 0;
     FILE *blocksfp = NULL;
@@ -251,11 +254,13 @@ int main(int argc, char **argv)
     if ( argc > 3 ) blocks_file = argv[3];
     if ( argc > 4 ) filter = argv[4];
     if ( argc > 5 ) format = argv[5];
+    if ( argc > 6 ) interface = argv[5];
     if ( !strcmp(filename,"*") ) filename = defaultfilename;
     if ( !strcmp(countries_file,"*") ) countries_file = defaultcountries_file;
     if ( !strcmp(blocks_file,"*") ) blocks_file = defaultblocks_file;
     if ( !strcmp(filter,"*") ) filter = defaultfilter;
     if ( !strcmp(format,"*") ) format = defaultformat;
+    if ( !strcmp(interface,"*") ) interface = defaultinterface;
     sscanf(format,"%i",&iformat);
 
 #ifdef DEBUG
@@ -360,6 +365,8 @@ int main(int argc, char **argv)
 					if(!strcmp(tempCountryData->country_iso_code,filter)) {
 						filterid = tempCountryData->geoname_id;
 						fprintf(stderr," filtering on %s\n",tempCountryData->country_name);
+				    	fileredCountryName = (char*) calloc(1,strlen(tempCountryData->country_name)+1);
+				    	strcpy(fileredCountryName,tempCountryData->country_name);
 					}
 				}
     		}
@@ -471,6 +478,8 @@ int main(int argc, char **argv)
 
     if (numblocks && filterid) {
     	numadds = 0;
+    	if ( iformat == 2 ) fprintf(stdout,"#!/bin/sh\necho \"Drop all IPv4 traffic from %s...\"\n",fileredCountryName);
+    	if ( iformat == 3 ) fprintf(stdout,"### tuple ### deny any from %s access to %s\n",fileredCountryName,interface);
     	for (int i=1;i<numblocks;i++) {
     		tempBlockData = *(BlockDataBase+i);
     		if ( (tempBlockData->geoname_id == filterid) ||
@@ -518,7 +527,12 @@ int main(int argc, char **argv)
     			if ( iformat == 2 ) {
     				// iptables -A INPUT -s 1.0.1.0/24 -j DROP
 					if ( tempBlockData->network ) {
-						fprintf(stdout,"iptables -A INPUT -s %s -j DROP\n",tempBlockData->network);
+						fprintf(stdout,"iptables -A INPUT -i %s -s %s -j DROP\n",interface,tempBlockData->network);
+					}
+    			} else if ( iformat == 3 ) {
+    				//-A ufw-user-input -i eth0 -s 192.168.1.226 -j DROP
+					if ( tempBlockData->network ) {
+						fprintf(stdout,"-A ufw-user-input -i %s -s %s -j DROP\n",interface,tempBlockData->network);
 					}
     			} else if ( iformat == 1 ) {
     				// csv format similar to csv input but with iso country codes added
@@ -609,6 +623,7 @@ int main(int argc, char **argv)
         if ( countriesfp ) fclose(countriesfp);
         if ( blocksfp ) fclose(blocksfp);
         cleanupmem();
+        if (fileredCountryName) free(fileredCountryName);
         exit(exit_code);
 }
 
