@@ -26,8 +26,8 @@ The arguments and default values are:
 5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output
    default: csv format
 
-The program needs to be linked against both the maxmind database library and libcsv:
-sudo apt-get install libcsv-dev libmaxminddb-dev
+The program needs to be linked against both the maxmind database library and libcsv:<br>
+sudo apt-get install libcsv-dev libmaxminddb-dev<br>
 git clone ...
 cd maxmindtest
 gcc -o maxmindtest maxmindtest.c -lsv -lmaxminddb
