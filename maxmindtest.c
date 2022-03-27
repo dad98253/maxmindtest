@@ -617,7 +617,7 @@ int main(int argc, char **argv)
     			}
     		}
     	}
-    	fprintf(stderr," %llu IPv4 addresses assigned to this country\n",numadds);
+    	fprintf(stderr," %llu IPv4 addresses assigned to %s\n",numadds,fileredCountryName);
     }
 
     fprintf(stderr, " done\n");
