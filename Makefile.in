@@ -197,10 +197,10 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/build-aux/install-sh \
 	$(top_srcdir)/build-aux/ltmain.sh \
 	$(top_srcdir)/build-aux/missing $(top_srcdir)/m4/Makefile.in \
-	AUTHORS COPYING ChangeLog INSTALL NEWS README build-aux/ar-lib \
-	build-aux/compile build-aux/config.guess build-aux/config.sub \
-	build-aux/depcomp build-aux/install-sh build-aux/ltmain.sh \
-	build-aux/missing
+	AUTHORS COPYING ChangeLog INSTALL NEWS README build-aux/NEWS \
+	build-aux/ar-lib build-aux/compile build-aux/config.guess \
+	build-aux/config.sub build-aux/depcomp build-aux/install-sh \
+	build-aux/ltmain.sh build-aux/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -357,7 +357,7 @@ ACLOCAL_AMFLAGS = -I m4 --install
 #libpasswin_1_0_a_LDFLAGS = -version-info 0:0:0
 #include_HEADERS = xxx
 #SUBDIRS = src
-EXTRA_DIST = m4/Makefile.in README.rm LICENSE build-aux/Makefile.in
+EXTRA_DIST = m4/Makefile.in README.md LICENSE build-aux/Makefile.in
 #add in main()
 __top_builddir__bin_maxmindtest_SOURCES = maxmindtest.c
 #__top_builddir__bin_maxmindtest_LDADD = $(top_builddir)/lib/libpass.a
