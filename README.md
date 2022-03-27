@@ -33,8 +33,9 @@ The program needs to be linked against both the maxmind database library and lib
 sudo apt-get install libcsv-dev libmaxminddb-dev<br>
 git clone ...<br>
 cd maxmindtest<br>
-gcc -o maxmindtest maxmindtest.c -lsv -lmaxminddb<br>
-./maxmindtest "*" "*" "*" "*" 2  > iptables.txt<br>
+./configure<br>
+make<br>
+bin/maxmindtest "*" "*" "*" "*" 2  > iptables.txt<br>
 
 Have fun!<br>
 -John
