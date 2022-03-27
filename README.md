@@ -30,8 +30,18 @@ The arguments and default values are:
    default: "eth0"
 
 The program needs to be linked against both the maxmind database library and libcsv:<br>
-sudo apt-get install libcsv-dev libmaxminddb-dev<br>
-git clone ...<br>
+
+In order to get copies of the Maxmind database, you'll need a key. The key for the GeoLite
+products is free. But, you'll need to go to their web site to get it:<br>
+https://www.maxmind.com/en/geolite2/signup?lang=en <br>
+Follow their instructions for setting up your key. Download the csv files that you want
+from their web site. Finally, run the geoipupdate application to download their latest
+(binary) GeoLite database. Note, I have had difficulty getting this to work on older
+32 bit ubuntu systems. You may need a more recent distro. It works fine on 64 bit ubuntu 20.04.
+
+sudo apt-get install libcsv-dev libmaxminddb-dev geoipupdate<br>
+geoipupdate
+git clone <this github repo><br>
 cd maxmindtest<br>
 ./configure<br>
 make<br>
@@ -39,3 +49,16 @@ bin/maxmindtest "*" "*" "*" "*" 2  > iptables.txt<br>
 
 Have fun!<br>
 -John
+
+P.S.,
+   I compared the output of this program with GeoIp block lists from other sources and they don't 
+   appear to be in 100% agreement. When I spot check some of these results using dig, it's not
+   clear how they get their data. I think that the best we can hope is that it is mostly correct.
+   A "mostly correct" internet block is probably better that no block at all!
+   
+   Don't forget to take care to not lock youself out of your server. Allways whitelist yourself at
+   the top of your tables!
+   
+   If the make insists that you install the auto tools, you could just compile the program without
+   using make (it's only one file!):<br>
+   gcc -o maxmindtest maxmindtest.c -lsv -lmaxminddb<br>
