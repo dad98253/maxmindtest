@@ -254,7 +254,7 @@ int main(int argc, char **argv)
     if ( argc > 3 ) blocks_file = argv[3];
     if ( argc > 4 ) filter = argv[4];
     if ( argc > 5 ) format = argv[5];
-    if ( argc > 6 ) interface = argv[5];
+    if ( argc > 6 ) interface = argv[6];
     if ( !strcmp(filename,"*") ) filename = defaultfilename;
     if ( !strcmp(countries_file,"*") ) countries_file = defaultcountries_file;
     if ( !strcmp(blocks_file,"*") ) blocks_file = defaultblocks_file;
