@@ -534,6 +534,11 @@ int main(int argc, char **argv)
 					if ( tempBlockData->network ) {
 						fprintf(stdout,"-A ufw-user-input -i %s -s %s -j DROP\n",interface,tempBlockData->network);
 					}
+    			} else if ( iformat == 4 ) {
+    				// 192.168.1.226
+					if ( tempBlockData->network ) {
+						fprintf(stdout," %s\n",tempBlockData->network);
+					}
     			} else if ( iformat == 1 ) {
     				// csv format similar to csv input but with iso country codes added
 					if ( tempBlockData->network ) {
