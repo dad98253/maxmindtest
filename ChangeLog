@@ -1,0 +1,245 @@
+commit 2c56387623334aa5927b0a2214c9411b746647ae
+Author: John Kuras <w7og@yahoo.com>
+Date:   Sat Mar 26 19:08:17 2022 -0700
+
+    updated gitignore
+
+M	.gitignore
+
+commit 467d569d08693b27a40186856481a32ab42f97fe
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 18:51:52 2022 -0700
+
+    minor output format change
+
+M	maxmindtest.c
+
+commit 222d60777d150e42e27374a75c945281375f003d
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 18:48:22 2022 -0700
+
+    fixed bug in default interface setting
+
+M	maxmindtest.c
+
+commit 394e8f7b75e989d77ba167a94c75531b1b03bb44
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 17:44:03 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit 9982d55f25cc55349e0e0759e760d11a79c679af
+Merge: d7536af 7f9e2fd
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 17:42:23 2022 -0700
+
+    Merge branch 'main' of github.com:dad98253/maxmindtest into main
+
+commit d7536af57f1063cbb789267f44614b367a56f83b
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 17:42:07 2022 -0700
+
+    added pf table output format:
+
+M	maxmindtest.c
+
+commit 7f9e2fd27ff2eb152856b3bd896ea1b25d7703da
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 16:53:45 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit 622b1e949508d2d123e68c5ca5f8669b5f9971c4
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 16:43:42 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit 0fe97da59fe8af9b69a423804d583c7f621e44e6
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 16:42:30 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit 8b87f1e248321ed4ec6f583e23040a162d143907
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 16:40:28 2022 -0700
+
+    added filter output format for ufw
+
+M	maxmindtest.c
+
+commit a20dff5053bdb6461d0db475b3917e46b0947acc
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 13:40:11 2022 -0700
+
+    added printed confimation of the country being filtered
+
+M	maxmindtest.c
+
+commit 05b7b15bf6a910a35a0a3222aebf2bf0a775d18d
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 01:43:30 2022 -0700
+
+    Update LICENSE
+
+M	LICENSE
+
+commit 967f412763b5cbc105bb4390b622f6c08ae59d9a
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 01:39:10 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit a5971d66aae51dace3181bdeae089e112f4f3a5c
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 01:38:12 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit eff5d545d2234fb4bc6506bd1f8253866cd55630
+Author: dad <w7og@yahoo.com>
+Date:	Sat Mar 26 01:36:46 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit e88d74e9cf055724b2b80b581b445493ac042b49
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 01:01:04 2022 -0700
+
+    added output format control, iptables output, check against GeoIP
+    database
+
+M	maxmindtest.c
+
+commit c5dbac3569af55ea2cdd22eab84c8b5a3a3ea1ea
+Author: John Kuras <w7og@yahoo.com>
+Date:	Sat Mar 26 00:57:26 2022 -0700
+
+    updated gitignore
+
+M	.gitignore
+
+commit e118640529ef0e2ede7a3cc7760bcd4b702b7046
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 16:15:24 2022 -0700
+
+    fixed bug in Release version
+
+M	maxmindtest.c
+
+commit f77a588c77e34d11fbdb07ee3702238e542e5ef1
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 15:19:56 2022 -0700
+
+    lookup country ids in block data and output with iso country codes
+
+M	maxmindtest.c
+
+commit e1f53548235f08b6f71fb8819fce05862246d944
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 13:01:56 2022 -0700
+
+    added sort on country geoname_id
+
+M	maxmindtest.c
+
+commit cf57fc2f3a6bc6417f66f0911ac14e4bb46b37f9
+Author: dad <w7og@yahoo.com>
+Date:	Fri Mar 25 00:23:21 2022 -0700
+
+    Update README.md
+
+M	README.md
+
+commit 21674546a107ac42414b76c7057ba10b0a24b475
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 00:20:17 2022 -0700
+
+    updated gitignore
+
+M	.gitignore
+
+commit c039a1b803755b7bb5d61b3b5e14d8254e6c85a5
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 00:19:27 2022 -0700
+
+    oops... had some copyrighted files in there...
+
+D	GeoLite2-Country-Blocks-IPv4.csv
+D	GeoLite2-Country-Locations-en.csv
+
+commit cefbaa9e73148958e1f4f0378201f19310154c10
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 00:12:50 2022 -0700
+
+    updated gitignore
+
+M	.gitignore
+
+commit c2bc7aee266d6feced4d0a7c8345062f59379c47
+Author: John Kuras <w7og@yahoo.com>
+Date:	Fri Mar 25 00:11:20 2022 -0700
+
+    loaded country and net data into memory
+
+M	maxmindtest.c
+
+commit 79550ed30ff45fe5bc8cd43c0a5de5d0804ed166
+Author: John Kuras <w7og@yahoo.com>
+Date:	Thu Mar 24 20:46:40 2022 -0700
+
+    added ability to parse maxmind csv files
+
+A	GeoLite2-Country-Blocks-IPv4.csv
+A	GeoLite2-Country-Locations-en.csv
+M	maxmindtest.c
+
+commit c956de6e8b444459ab74345496783d3743271be7
+Author: John Kuras <w7og@yahoo.com>
+Date:	Thu Mar 24 13:49:36 2022 -0700
+
+    updated copyright info
+
+M	LICENSE
+M	maxmindtest.c
+
+commit 7a79bd77b9845be004442858e58df1bdeeeb5c06
+Author: John Kuras <w7og@yahoo.com>
+Date:	Thu Mar 24 13:38:12 2022 -0700
+
+    initial commit
+
+A	maxmindtest.c
+
+commit aacebfbdd18ba8cff743239c55df89a3122b685d
+Author: John Kuras <w7og@yahoo.com>
+Date:	Thu Mar 24 13:37:53 2022 -0700
+
+    updated gitignore
+
+M	.gitignore
+
+commit 91423c460b818bc817c8a58752b4f807e98e8408
+Author: dad <w7og@yahoo.com>
+Date:	Thu Mar 24 13:26:37 2022 -0700
+
+    Initial commit
+
+A	.gitignore
+A	LICENSE
+A	README.md
