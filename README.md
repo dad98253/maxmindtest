@@ -36,7 +36,7 @@ products is free. But, you'll need to go to their web site to get it:<br>
 https://www.maxmind.com/en/geolite2/signup?lang=en <br>
 Follow their instructions for setting up your key. Download the csv files that you want
 from their web site. Finally, run the geoipupdate application to download their latest
-(binary) GeoLite database. Note, I have had difficulty getting this to work on older
+(binary) GeoLite database. Note: I have had difficulty getting this to work on older
 32 bit ubuntu systems. You may need a more recent distro. It works fine on 64 bit ubuntu 20.04.
 
 sudo apt-get install libcsv-dev libmaxminddb-dev geoipupdate<br>
