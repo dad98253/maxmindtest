@@ -12,7 +12,7 @@ ACLOCAL_AMFLAGS = -I m4 --install
 #SUBDIRS = src
 
 
-EXTRA_DIST = m4/Makefile.in README.rm LICENSE build-aux/Makefile.in
+EXTRA_DIST = m4/Makefile.in README.md LICENSE build-aux/Makefile.in
 	
 
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
