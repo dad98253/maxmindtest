@@ -24,7 +24,7 @@ The arguments and default values are:
    default: "GeoLite2-Country-Blocks-IPv4.csv"
 4) The iso country code for the country to filter on<br>
    default: "CN" (China)
-5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output, 3 -> ufw output<br>
+5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output, 3 -> ufw output, 4 -> BSD pf table output<br>
    default: csv format
 6) The out facing interface on the firewall<br>
    default: "eth0"
