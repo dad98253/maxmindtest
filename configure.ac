@@ -12,8 +12,6 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_TARGET
-#AM_GNU_GETTEXT([external])
-#AM_GNU_GETTEXT_VERSION(0.17)
 # see GNU autoconf archive = perdefined macros
 AX_GENERATE_CHANGELOG
 
@@ -27,8 +25,6 @@ AM_PROG_AS
 AC_PROG_INSTALL
 AC_PROG_CPP
 AC_PROG_AWK
-#AC_PROG_LN_S
-#AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AM_PROG_CC_C_O
 AC_C_BIGENDIAN
@@ -46,18 +42,11 @@ AC_SUBST(PASSWIN_VERSION, $passwin_version)
 # structures, compiler characteristics, library functions, system services.
 
 # Checks for libraries.
-# FIXME: Replace `main' with a function in `-lgmp':
-#AC_CHECK_LIB([gmp], [gmp_printf])
 AC_CHECK_LIB([csv], [csv_init])
 AC_CHECK_LIB([maxminddb], [MMDB_open])
-#AC_CHECK_LIB([curl], [curl_easy_init])
-#AC_CHECK_LIB([ssh2], [libssh2_session_last_error])
-#AC_CHECK_LIB([z], [uncompress])
-#PKG_CHECK_MODULES([],[])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h float.h limits.h malloc.h stddef.h stdint.h time.h ctype.h stdlib.h stdio.h intrin.h string.h sys/ioctl.h sys/time.h unistd.h termios.h getopt.h gmp.h sys/select.h sys/socket.h arpa/inet.h netinet/in.h libssh2.h curl/curl.h csv.h maxminddb.h])
-#AC_CHECK_HEADERS([zlib.h gmp.h])
 # Checks for typedefs, structures, macros, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
@@ -90,7 +79,6 @@ AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_ALLOCA
-#AC_CHECK_FUNCS([bzero clock_gettime fchdir fdatasync floor ftruncate gettimeofday memmove memset mkdir munmap pow realpath rmdir sqrt strchr strdup strerror strtol isascii isblank strcasecmp stricmp snprintf __FUNC__ __FUNCTION__])
 
 # Options
 AC_ARG_ENABLE(debug,
@@ -112,13 +100,9 @@ else
 fi
 
 
-#AC_LIBTOOL_TAGS([])
-#AC_LIBTOOL_WIN32_DLL
 AM_PROG_AR
 LT_INIT([disable-shared])
 AC_SUBST([LIBTOOL_DEPS])
-#AC_PROG_LIBTOOL
-
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
