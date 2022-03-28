@@ -1,8 +1,8 @@
 # maxmindtest
 A program to load maxmind csv files and verify them against the MaxMind GeoIP binary database.
 
-The program also has the ability to filter the files based on country code and produce iptables
-or ufw output appropriate for GeoIP filtering at a linux firewall. It also has an (untest) output
+The program also has the ability to filter the files based on country code and produce iptables, ipset, 
+or ufw output appropriate for GeoIP filtering at a linux firewall. It also has an (untested) output
 format for BSD pf tables.
 
 The filter is conservative, in that it will block all IP addresses associated with the specified
@@ -25,10 +25,10 @@ The arguments and default values are:
    default: "GeoLite2-Country-Blocks-IPv4.csv"
 4) The two letter iso country code for the country to filter on<br>
    default: "CN" (China)
-5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output, 3 -> ufw output, 4 -> BSD pf table output<br>
+5) The format of the output file: 1 -> csv format similar the the input with iso code added, 2 -> iptables output, 3 -> ufw output, 4 -> BSD pf table output, 5 -> ipset output<br>
    default: csv format
-6) The out facing interface on the firewall<br>
-   default: "eth0"
+6) The out facing interface on the firewall, or the setname (for ipset output)<br>
+   default: "eth0" or "blacklist" (depending on output option)
 
 The program needs to be linked against both the maxmind database library and libcsv:<br>
 
