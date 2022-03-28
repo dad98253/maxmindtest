@@ -227,6 +227,7 @@ int main(int argc, char **argv)
     char *defaultfilter = "CN";
     char *defaultformat = "1";
     char *defaultinterface = "eth0";
+    char *defaultblacklist = "blacklist";
     char *filename = defaultfilename;
     char *countries_file = defaultcountries_file;
     char *blocks_file = defaultblocks_file;
@@ -260,8 +261,13 @@ int main(int argc, char **argv)
     if ( !strcmp(blocks_file,"*") ) blocks_file = defaultblocks_file;
     if ( !strcmp(filter,"*") ) filter = defaultfilter;
     if ( !strcmp(format,"*") ) format = defaultformat;
-    if ( !strcmp(interface,"*") ) interface = defaultinterface;
     sscanf(format,"%i",&iformat);
+    if ( iformat == 5 ) {
+    	if ( !strcmp(interface,"*") || argc == 6 ) interface = defaultblacklist;
+    } else {
+    	if ( !strcmp(interface,"*") ) interface = defaultinterface;
+    }
+
 
 #ifdef DEBUG
     for (i=0;i<argc;i++) {
@@ -478,7 +484,7 @@ int main(int argc, char **argv)
 
     if (numblocks && filterid) {
     	numadds = 0;
-    	if ( iformat == 2 ) fprintf(stdout,"#!/bin/sh\necho \"Drop all IPv4 traffic from %s...\"\n",fileredCountryName);
+    	if ( iformat == 2 || iformat == 5 ) fprintf(stdout,"#!/bin/sh\necho \"Drop all IPv4 traffic from %s...\"\n",fileredCountryName);
     	if ( iformat == 3 ) fprintf(stdout,"### tuple ### deny any from %s access to %s\n",fileredCountryName,interface);
     	for (int i=1;i<numblocks;i++) {
     		tempBlockData = *(BlockDataBase+i);
@@ -530,14 +536,19 @@ int main(int argc, char **argv)
 						fprintf(stdout,"iptables -A INPUT -i %s -s %s -j DROP\n",interface,tempBlockData->network);
 					}
     			} else if ( iformat == 3 ) {
-    				//-A ufw-user-input -i eth0 -s 192.168.1.226 -j DROP
+    				//-A ufw-user-input -i eth0 -s 192.168.1.226/24 -j DROP
 					if ( tempBlockData->network ) {
 						fprintf(stdout,"-A ufw-user-input -i %s -s %s -j DROP\n",interface,tempBlockData->network);
 					}
     			} else if ( iformat == 4 ) {
-    				// 192.168.1.226
+    				// 192.168.1.226/24
 					if ( tempBlockData->network ) {
 						fprintf(stdout," %s\n",tempBlockData->network);
+					}
+    			} else if ( iformat == 5 ) {
+    				// ipset add blacklist 192.168.1.226/24
+					if ( tempBlockData->network ) {
+						fprintf(stdout,"ipset add %s %s\n",interface,tempBlockData->network);
 					}
     			} else if ( iformat == 1 ) {
     				// csv format similar to csv input but with iso country codes added
